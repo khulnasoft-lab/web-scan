@@ -5,6 +5,13 @@ import '../../web-scan-live/styles/index.css';
 
 export const prerender = false;
 
+// Required for dynamic routes in static builds
+export async function getStaticPaths() {
+  // Return an empty array since this is a catch-all route that should be handled server-side
+  // The prerender: false setting above ensures this route is handled at request time
+  return [];
+}
+
 const { pathname, search } = new URL(Astro.request.url);
 
 const searchUrl = new URLSearchParams(search).get('url');

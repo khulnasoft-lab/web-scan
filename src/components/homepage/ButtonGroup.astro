@@ -21,7 +21,8 @@ const { links } = Astro.props;
 </div>
 
 <style lang="scss">
-@import '@styles/global.scss';
+@use '@styles/global.scss';
+@use '@styles/media-queries.scss' as mq;
 .button-wrap {
   margin: 3rem auto;
   display: flex;
@@ -58,7 +59,7 @@ const { links } = Astro.props;
       }
     }
   }
-  @include for-mobile-only {
+  @include mq.for-mobile-only {
     flex-direction: column;
     align-items: center;
   }

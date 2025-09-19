@@ -63,12 +63,13 @@ import Screenshots from "./Screenshots.astro"
   </script>
 
 <style lang="scss">
-@import '@styles/global.scss';
+@use '@styles/global.scss';
+@use '@styles/media-queries.scss' as mq;
 .hero {
   display: flex;
   justify-content: space-around;
   width: 100vw;
-  @include desktop-down {
+  @include mq.desktop-down {
     display: block;
     width: 80vw;
     margin: 0 auto;
@@ -79,10 +80,10 @@ import Screenshots from "./Screenshots.astro"
     display: flex;
     flex-direction: column;
     gap: 20vh;
-    @include tablet-landscape-down {
+    @include mq.tablet-landscape-down {
       gap: 6rem;
     }
-    @include mobile-down {
+    @include mq.mobile-down {
       gap: 4rem;
     }
     h1 {
@@ -111,7 +112,7 @@ import Screenshots from "./Screenshots.astro"
       gap: 1rem;
       max-width: 700px;
       z-index: 1;
-      @include tablet-landscape-down {
+      @include mq.tablet-landscape-down {
         gap: 0.25rem;
       }
       h2 {

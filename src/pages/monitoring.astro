@@ -1,0 +1,46 @@
+---
+import BaseLayout from '@layouts/Base.astro';
+import MonitoringDashboard from '@components/monitoring/MonitoringDashboard';
+import Nav from '@components/scafold/Nav.astro';
+
+const isBossServer = import.meta.env.BOSS_SERVER === true;
+
+// Redirect to /check if not running as boss server
+if (!isBossServer) {
+  Astro.redirect('/check');
+}
+---
+
+<BaseLayout title="Monitoring Dashboard" description="Real-time monitoring and alerting dashboard">
+  <Fragment slot="head">
+    {!isBossServer && (<meta http-equiv="refresh" content="0; url=/check" />)}
+  </Fragment>
+  
+  <Nav />
+  
+  <main class="monitoring-page">
+    <MonitoringDashboard client:only="react" />
+  </main>
+</BaseLayout>
+
+<style lang="scss">
+  @use '@styles/global.scss';
+  @use '@styles/media-queries.scss' as mq;
+  
+  .monitoring-page {
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    margin: 0 auto;
+    z-index: 3;
+    background: var(--background);
+    
+    @include mq.tablet-landscape-down {
+      width: 96vw;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+  }
+</style>

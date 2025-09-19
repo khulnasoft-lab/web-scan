@@ -1,7 +1,150 @@
+version: '3.8'
+
 services:
-  web-scan:
-    container_name: Web-Scan
-    image: khulnasoft/web-scan
+  # ==========================================
+  # WEB-SCAN API SERVICE
+  # ==========================================
+  web-scan-api:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      target: production
     ports:
-      - 3000:3000
+      - "${PORT:-3001}:3001"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=3001
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///app/data/webscan.db}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - DISABLE_CACHE=${DISABLE_CACHE:-false}
+      - PLATFORM=NODE
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./test-results:/app/test-results
+    depends_on:
+      - redis
+      - postgres
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - webscan-network
+
+  # ==========================================
+  # REDIS CACHE SERVICE
+  # ==========================================
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - webscan-network
+
+  # ==========================================
+  # POSTGRESQL DATABASE
+  # ==========================================
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-webscan}
+      - POSTGRES_USER=${POSTGRES_USER:-webscan}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-webscan123}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-webscan}"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - webscan-network
+
+  # ==========================================
+  # NGINX REVERSE PROXY & LOAD BALANCER
+  # ==========================================
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - web-scan-api
+    restart: unless-stopped
+    networks:
+      - webscan-network
+
+  # ==========================================
+  # MONITORING & OBSERVABILITY
+  # ==========================================
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    restart: unless-stopped
+    networks:
+      - webscan-network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin123}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - webscan-network
+
+# ==========================================
+# VOLUMES
+# ==========================================
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+# ==========================================
+# NETWORKS
+# ==========================================
+networks:
+  webscan-network:
+    driver: bridge

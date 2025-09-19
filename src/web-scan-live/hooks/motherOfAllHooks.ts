@@ -39,7 +39,7 @@ const useMotherOfAllHooks = <ResultType = any>(params: UseIpAddressProps<ResultT
 
   const doTheFetch = () => {
     if (keys.disableEverything) {
-      updateLoadingJobs(jobId, 'skipped', 'Web-Check is temporarily disabled. Please try again later.', reset);
+      updateLoadingJobs(jobId, 'skipped', 'Web-Scan is temporarily disabled. Please try again later.', reset);
       return Promise.resolve();
     }
     return fetchRequest()

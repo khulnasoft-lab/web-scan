@@ -6,12 +6,21 @@ import dotenv from 'dotenv';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import historyApiFallback from 'connect-history-api-fallback';
+import { createServer } from 'http';
+import { initializeDatabase } from './src/database/models.js';
+import monitoringService from './src/monitoring/service.js';
+import WebSocketServer from './src/websocket/server.js';
+import redisClient from './src/cache/redis-client.js';
 
 // Load environment variables from .env file
 dotenv.config();
 
 // Create the Express app
 const app = express();
+
+// Middleware for parsing JSON and URL-encoded data
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 const __filename = new URL(import.meta.url).pathname;
 const __dirname = path.dirname(__filename);
@@ -69,7 +78,32 @@ fs.readdirSync(dirPath, { withFileTypes: true })
     const handler = handlerModule.default || handlerModule;
     handlers[route] = handler;
 
+    // Support both GET and POST requests for API endpoints
     app.get(route, async (req, res) => {
+      try {
+        await handler(req, res);
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
+    });
+
+    app.post(route, async (req, res) => {
+      try {
+        await handler(req, res);
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
+    });
+
+    app.put(route, async (req, res) => {
+      try {
+        await handler(req, res);
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
+    });
+
+    app.delete(route, async (req, res) => {
       try {
         await handler(req, res);
       } catch (err) {
@@ -205,8 +239,58 @@ const printMessage = () => {
   );
 };
 
-// Create server
-app.listen(port, () => {
-  printMessage();
-});
+// Initialize services and start server
+async function startServer() {
+  try {
+    // Initialize database
+    await initializeDatabase();
+    console.log('Database initialized successfully');
+
+    // Connect to Redis
+    await redisClient.connect();
+    console.log('Redis connected successfully');
+
+    // Create HTTP server
+    const server = createServer(app);
+
+    // Initialize WebSocket server
+    const websocketServer = new WebSocketServer(server);
+    console.log('WebSocket server initialized');
+
+    // Start server
+    server.listen(port, () => {
+      printMessage();
+      console.log('\x1b[32m🔧 All services initialized successfully\x1b[0m');
+      console.log('\x1b[36m📊 Monitoring service started\x1b[0m');
+      console.log('\x1b[36m🔌 WebSocket server ready\x1b[0m');
+      console.log('\x1b[36m💾 Redis cache connected\x1b[0m');
+    });
+
+    // Graceful shutdown
+    process.on('SIGTERM', async () => {
+      console.log('\x1b[33mReceived SIGTERM, shutting down gracefully...\x1b[0m');
+      await redisClient.disconnect();
+      server.close(() => {
+        console.log('\x1b[32mServer closed\x1b[0m');
+        process.exit(0);
+      });
+    });
+
+    process.on('SIGINT', async () => {
+      console.log('\x1b[33mReceived SIGINT, shutting down gracefully...\x1b[0m');
+      await redisClient.disconnect();
+      server.close(() => {
+        console.log('\x1b[32mServer closed\x1b[0m');
+        process.exit(0);
+      });
+    });
+
+  } catch (error) {
+    console.error('\x1b[31mFailed to start server:\x1b[0m', error);
+    process.exit(1);
+  }
+}
+
+// Start the server
+startServer();
 

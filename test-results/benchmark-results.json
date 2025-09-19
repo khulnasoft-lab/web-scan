@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Concurrent DNS Requests",
+    "totalRequests": 50,
+    "successfulRequests": 23,
+    "errors": 27,
+    "successRate": "46.00%",
+    "totalTime": "448.36ms",
+    "avgResponseTime": "8.97ms",
+    "requestsPerSecond": "111.52"
+  },
+  {
+    "name": "Cache Performance Test",
+    "totalRequests": 50,
+    "successfulRequests": 41,
+    "errors": 9,
+    "successRate": "82.00%",
+    "totalTime": "2054.44ms",
+    "avgResponseTime": "41.09ms",
+    "requestsPerSecond": "24.34"
+  },
+  {
+    "name": "AI Endpoint Load Test",
+    "totalRequests": 9,
+    "successfulRequests": 9,
+    "errors": 0,
+    "successRate": "100.00%",
+    "totalTime": "211.99ms",
+    "avgResponseTime": "23.55ms",
+    "requestsPerSecond": "42.45"
+  }
+]

@@ -1,0 +1,302 @@
+name: 🚀 Web-Scan CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ published ]
+
+env:
+  NODE_VERSION: '18.x'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # ==========================================
+  # TESTING & QUALITY ASSURANCE
+  # ==========================================
+  test:
+    name: 🧪 Test Suite
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x, 20.x]
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🟢 Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'yarn'
+
+    - name: 📦 Install dependencies
+      run: yarn install --frozen-lockfile
+
+    - name: 🔍 Lint code
+      run: yarn lint
+
+    - name: 🏗️ Build project
+      run: yarn build
+
+    - name: 🧪 Run unit tests
+      run: yarn test --coverage
+
+    - name: 📊 Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+
+  # ==========================================
+  # API INTEGRATION TESTING
+  # ==========================================
+  api-test:
+    name: 🔌 API Integration Tests
+    runs-on: ubuntu-latest
+    needs: test
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: webscan_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'yarn'
+
+    - name: 📦 Install dependencies
+      run: yarn install --frozen-lockfile
+
+    - name: 🚀 Start API server
+      run: |
+        yarn dev:api-sqlite &
+        sleep 10
+      env:
+        NODE_ENV: test
+        PORT: 3001
+
+    - name: 🔍 Wait for API to be ready
+      run: |
+        timeout 30 bash -c 'until curl -f http://localhost:3001/health; do sleep 1; done'
+
+    - name: 🧪 Run API integration tests
+      run: yarn test:api --exit-on-failure
+      env:
+        API_BASE_URL: http://localhost:3001
+
+    - name: 📊 Run performance benchmarks
+      run: yarn test:api:benchmarks
+      env:
+        API_BASE_URL: http://localhost:3001
+
+    - name: 📄 Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: api-test-results
+        path: test-results/
+
+  # ==========================================
+  # SECURITY SCANNING
+  # ==========================================
+  security:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🔍 Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: 📊 Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+    - name: 🔍 Run CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+      with:
+        languages: javascript
+
+  # ==========================================
+  # DOCKER BUILD & PUSH
+  # ==========================================
+  docker:
+    name: 🐳 Docker Build & Push
+    runs-on: ubuntu-latest
+    needs: [test, api-test, security]
+    if: github.event_name != 'pull_request'
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐳 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: 🔑 Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: 🏷️ Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: 🏗️ Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  # ==========================================
+  # DEPLOYMENT TO STAGING
+  # ==========================================
+  deploy-staging:
+    name: 🚀 Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: docker
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🚀 Deploy to staging
+      run: |
+        echo "Deploying to staging environment..."
+        # Add your staging deployment commands here
+        # Example: kubectl, helm, or cloud provider CLI commands
+
+    - name: 🔍 Run smoke tests
+      run: |
+        sleep 30 # Wait for deployment
+        curl -f ${{ secrets.STAGING_URL }}/health
+        curl -f ${{ secrets.STAGING_URL }}/api/admin/dashboard
+
+    - name: 📢 Notify Slack
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        channel: '#deployments'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+      if: always()
+
+  # ==========================================
+  # DEPLOYMENT TO PRODUCTION
+  # ==========================================
+  deploy-production:
+    name: 🌟 Deploy to Production
+    runs-on: ubuntu-latest
+    needs: docker
+    if: github.event_name == 'release'
+    environment: production
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🚀 Deploy to production
+      run: |
+        echo "Deploying to production environment..."
+        # Add your production deployment commands here
+
+    - name: 🔍 Run production health checks
+      run: |
+        sleep 60 # Wait for deployment
+        curl -f ${{ secrets.PRODUCTION_URL }}/health
+        curl -f ${{ secrets.PRODUCTION_URL }}/api/admin/dashboard
+
+    - name: 📊 Run post-deployment tests
+      run: |
+        # Run critical path tests in production
+        curl -f "${{ secrets.PRODUCTION_URL }}/api/network/dns?url=example.com"
+        curl -f "${{ secrets.PRODUCTION_URL }}/api/security/ssl?url=example.com"
+
+    - name: 📢 Notify team
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        channel: '#production'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        text: |
+          🎉 Web-Scan API ${{ github.event.release.tag_name }} deployed to production!
+          🔗 Dashboard: ${{ secrets.PRODUCTION_URL }}/api/admin/dashboard
+      if: success()
+
+  # ==========================================
+  # PERFORMANCE MONITORING
+  # ==========================================
+  performance-monitoring:
+    name: 📊 Performance Monitoring
+    runs-on: ubuntu-latest
+    needs: deploy-production
+    if: github.event_name == 'release'
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'yarn'
+
+    - name: 📦 Install dependencies
+      run: yarn install --frozen-lockfile
+
+    - name: 📊 Run performance benchmarks
+      run: yarn test:api:benchmarks
+      env:
+        API_BASE_URL: ${{ secrets.PRODUCTION_URL }}
+
+    - name: 📈 Upload performance results
+      uses: actions/upload-artifact@v3
+      with:
+        name: production-performance-results
+        path: test-results/

@@ -1,0 +1,413 @@
+{
+  "summary": {
+    "total": 27,
+    "passed": 23,
+    "failed": 4,
+    "skipped": 0,
+    "startTime": "2025-09-19T22:04:17.206Z",
+    "endTime": "2025-09-19T22:05:04.820Z",
+    "duration": 47614
+  },
+  "endpoints": {
+    "/api/security/ssl": [
+      {
+        "name": "SSL Certificate Analysis - Valid Domain",
+        "endpoint": "/api/security/ssl",
+        "method": "GET",
+        "status": "PASSED",
+        "responseTime": 1187,
+        "statusCode": 200,
+        "responseSize": 1347,
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2025-09-19T22:04:18.395Z"
+      },
+      {
+        "name": "SSL Certificate Analysis - Plain Domain",
+        "endpoint": "/api/security/ssl",
+        "method": "GET",
+        "status": "PASSED",
+        "responseTime": 1775,
+        "statusCode": 200,
+        "responseSize": 1347,
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2025-09-19T22:04:18.986Z"
+      },
+      {
+        "name": "Missing URL Parameter",
+        "endpoint": "/api/security/ssl",
+        "method": "GET",
+        "status": "PASSED",
+        "responseTime": 23,
+        "statusCode": 500,
+        "responseSize": 28,
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2025-09-19T22:05:02.290Z"
+      }
+    ],
+    "/api/security/headers": [
+      {
+        "name": "Security Headers Analysis",
+        "endpoint": "/api/security/headers",
+        "method": "GET",
+        "status": "PASSED",
+        "responseTime": 1423,
+        "statusCode": 200,
+        "responseSize": 343,
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2025-09-19T22:04:18.635Z"
+      },
+      {
+        "name": "Concurrent Request Handling",
+        "endpoint": "/api/security/headers",
+        "method": "GET",
+        "status": "PASSED",
+        "responseTime": 371,
+        "statusCode": 200,
+        "responseSize": 343,
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2025-09-19T22:05:04.820Z"
+      }
+    ],
+    "/api/security/tls": [
+      {
+        "name": "TLS Analysis - Comprehensive",
+        "endpoint": "/api/security/tls",
+        "method": "GET",
+        "status": "PASSED",
+        "responseTime": 3923,
+        "statusCode": 200,
+        "responseSize": 33964,
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2025-09-19T22:04:21.137Z"
+      }
+    ],
+    "/api/security/firewall": [
+      {
+        "name": "Firewall Detection",
+        "endpoint": "/api/security/firewall",
+        "method": "GET",
+        "status": "PASSED",
+        "responseTime": 1581,
+        "statusCode": 200,
+        "responseSize": 232,
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2025-09-19T22:04:18.795Z"
+      }
+    ],
+    "/api/security/hsts": [
+      {
+        "name": "HSTS Analysis",
+        "endpoint": "/api/security/hsts",
+        "method": "GET",
+        "status": "PASSED",
+        "responseTime": 258,
+        "statusCode": 200,
+        "responseSize": 88,
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2025-09-19T22:04:21.395Z"
+      }
+    ],
+    "/api/security/threats": [
+      {
+        "name": "Threats Analysis",
+        "endpoint": "/api/security/threats",
+        "method": "GET",
+        "status": "FAILED",
+        "responseTime": 1414,
+        "statusCode": 500,
+        "responseSize": 273,
+        "errors": [
+          "Expected status 200, got 500",
+          "API returned error: All requests failed - Request to URLHaus failed, Request failed with status code 401 Request to PhishTank failed: Request failed with status code 403 CLOUDMERSIVE_API_KEY is required for the Cloudmersive check Request failed: Request failed with status code 400"
+        ],
+        "warnings": [],
+        "timestamp": "2025-09-19T22:04:22.552Z"
+      }
+    ],
+    "/api/network/dns": [
+      {
+        "name": "DNS Lookup - Comprehensive",
+        "endpoint": "/api/network/dns",
+        "method": "GET",
+        "status": "PASSED",
+        "responseTime": 262,
+        "statusCode": 200,
+        "responseSize": 652,
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2025-09-19T22:04:21.400Z"
+      },
+      {
+        "name": "DNS Lookup - Complex Domain",
+        "endpoint": "/api/network/dns",
+        "method": "GET",
+        "status": "PASSED",
+        "responseTime": 254,
+        "statusCode": 200,
+        "responseSize": 1997,
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2025-09-19T22:04:21.393Z"
+      },
+      {
+        "name": "Invalid Domain",
+        "endpoint": "/api/network/dns",
+        "method": "GET",
+        "status": "FAILED",
+        "responseTime": 119,
+        "statusCode": 200,
+        "responseSize": 81,
+        "errors": [
+          "Expected status 500, got 200"
+        ],
+        "warnings": [],
+        "timestamp": "2025-09-19T22:05:02.388Z"
+      },
+      {
+        "name": "Cached Response - DNS",
+        "endpoint": "/api/network/dns",
+        "method": "GET",
+        "status": "PASSED",
+        "responseTime": 266,
+        "statusCode": 200,
+        "responseSize": 652,
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2025-09-19T22:05:04.713Z"
+      }
+    ],
+    "/api/network/ports": [
+      {
+        "name": "Port Scanning",
+        "endpoint": "/api/network/ports",
+        "method": "GET",
+        "status": "PASSED",
+        "responseTime": 1571,
+        "statusCode": 200,
+        "responseSize": 157,
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2025-09-19T22:04:22.712Z"
+      }
+    ],
+    "/api/network/get-ip": [
+      {
+        "name": "IP Address Lookup",
+        "endpoint": "/api/network/get-ip",
+        "method": "GET",
+        "status": "PASSED",
+        "responseTime": 29,
+        "statusCode": 200,
+        "responseSize": 33,
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2025-09-19T22:04:22.741Z"
+      }
+    ],
+    "/api/network/trace-route": [
+      {
+        "name": "Trace Route Analysis",
+        "endpoint": "/api/network/trace-route",
+        "method": "GET",
+        "status": "FAILED",
+        "responseTime": 30005,
+        "statusCode": null,
+        "responseSize": 0,
+        "errors": [
+          "timeout of 30000ms exceeded"
+        ],
+        "warnings": [],
+        "timestamp": "2025-09-19T22:04:52.717Z"
+      }
+    ],
+    "/api/test-ai": [
+      {
+        "name": "Basic AI Analysis",
+        "endpoint": "/api/test-ai",
+        "method": "GET",
+        "status": "PASSED",
+        "responseTime": 16,
+        "statusCode": 200,
+        "responseSize": 399,
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2025-09-19T22:04:22.729Z"
+      },
+      {
+        "name": "Rate Limit Testing - AI Endpoint",
+        "endpoint": "/api/test-ai",
+        "method": "GET",
+        "status": "PASSED",
+        "responseTime": 25,
+        "statusCode": 200,
+        "responseSize": 400,
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2025-09-19T22:05:02.295Z"
+      }
+    ],
+    "/api/ai-vulnerability-analysis": [
+      {
+        "name": "AI Vulnerability Analysis",
+        "endpoint": "/api/ai-vulnerability-analysis",
+        "method": "GET",
+        "status": "PASSED",
+        "responseTime": 20,
+        "statusCode": 200,
+        "responseSize": 2686,
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2025-09-19T22:04:22.734Z"
+      }
+    ],
+    "/api/ai-monitoring-insights": [
+      {
+        "name": "AI Monitoring Insights",
+        "endpoint": "/api/ai-monitoring-insights",
+        "method": "GET",
+        "status": "PASSED",
+        "responseTime": 24,
+        "statusCode": 200,
+        "responseSize": 1173,
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2025-09-19T22:04:22.738Z"
+      }
+    ],
+    "/api/analysis/quality": [
+      {
+        "name": "Website Quality Analysis",
+        "endpoint": "/api/analysis/quality",
+        "method": "GET",
+        "status": "FAILED",
+        "responseTime": 643,
+        "statusCode": 500,
+        "responseSize": 47,
+        "errors": [
+          "Expected status 200, got 500",
+          "API returned error: Request failed with status code 400"
+        ],
+        "warnings": [],
+        "timestamp": "2025-09-19T22:04:53.360Z"
+      }
+    ],
+    "/api/analysis/rank": [
+      {
+        "name": "Domain Ranking",
+        "endpoint": "/api/analysis/rank",
+        "method": "GET",
+        "status": "PASSED",
+        "responseTime": 1136,
+        "statusCode": 200,
+        "responseSize": 1321,
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2025-09-19T22:04:53.855Z"
+      }
+    ],
+    "/api/analysis/legacy-rank": [
+      {
+        "name": "Legacy Ranking",
+        "endpoint": "/api/analysis/legacy-rank",
+        "method": "GET",
+        "status": "PASSED",
+        "responseTime": 7915,
+        "statusCode": 200,
+        "responseSize": 53,
+        "errors": [],
+        "warnings": [
+          "Slow response: 7914.90ms"
+        ],
+        "timestamp": "2025-09-19T22:05:00.634Z"
+      }
+    ],
+    "/api/analysis/tech-stack": [
+      {
+        "name": "Technology Stack Analysis",
+        "endpoint": "/api/analysis/tech-stack",
+        "method": "GET",
+        "status": "PASSED",
+        "responseTime": 9546,
+        "statusCode": 200,
+        "responseSize": 700,
+        "errors": [],
+        "warnings": [
+          "Slow response: 9545.75ms"
+        ],
+        "timestamp": "2025-09-19T22:05:02.266Z"
+      }
+    ],
+    "/api/utils/cookies": [
+      {
+        "name": "Cookie Analysis",
+        "endpoint": "/api/utils/cookies",
+        "method": "GET",
+        "status": "PASSED",
+        "responseTime": 8158,
+        "statusCode": 200,
+        "responseSize": 24,
+        "errors": [],
+        "warnings": [
+          "Slow response: 8158.01ms"
+        ],
+        "timestamp": "2025-09-19T22:05:00.879Z"
+      }
+    ],
+    "/api/utils/redirects": [
+      {
+        "name": "Redirect Tracing",
+        "endpoint": "/api/utils/redirects",
+        "method": "GET",
+        "status": "PASSED",
+        "responseTime": 2180,
+        "statusCode": 200,
+        "responseSize": 37,
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2025-09-19T22:05:04.447Z"
+      }
+    ],
+    "/health": [
+      {
+        "name": "Fast Response - Health Check",
+        "endpoint": "/health",
+        "method": "GET",
+        "status": "PASSED",
+        "responseTime": 26,
+        "statusCode": 200,
+        "responseSize": 204,
+        "errors": [],
+        "warnings": [],
+        "timestamp": "2025-09-19T22:05:02.298Z"
+      }
+    ]
+  },
+  "performance": {
+    "averageResponseTime": 2746.296296296296,
+    "slowestEndpoint": {
+      "name": "Trace Route Analysis",
+      "endpoint": "/api/network/trace-route",
+      "responseTime": 30005
+    },
+    "fastestEndpoint": {
+      "name": "Basic AI Analysis",
+      "endpoint": "/api/test-ai",
+      "responseTime": 16
+    }
+  },
+  "errors": [
+    {
+      "test": "Trace Route Analysis",
+      "error": "timeout of 30000ms exceeded",
+      "timestamp": "2025-09-19T22:04:52.717Z"
+    }
+  ]
+}

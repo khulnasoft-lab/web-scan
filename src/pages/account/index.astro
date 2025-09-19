@@ -33,7 +33,8 @@ import Icon from '@components/molecules/Icon.svelte';
 
 
 <style lang="scss">
-  @import '@styles/global.scss';
+  @use '@styles/global.scss';
+  @use '@styles/media-queries.scss' as mq;
   .web-scan-page {
     padding-top: 2rem;
     margin: 0 auto;
@@ -43,7 +44,7 @@ import Icon from '@components/molecules/Icon.svelte';
     flex-direction: column;
     justify-content: space-between;
     background-image: url('/assets/images/background-dots.svg');
-    @include mobile-down {
+    @include mq.mobile-down {
       padding: 0.5rem;
     }
     .under-development {
@@ -67,7 +68,7 @@ import Icon from '@components/molecules/Icon.svelte';
       flex-grow: 1;
       padding: 5rem 0 2rem 0;
       max-width: 1200px;
-      @include mobile-down {
+      @include mq.mobile-down {
       padding: 1rem 0;
     }
     }

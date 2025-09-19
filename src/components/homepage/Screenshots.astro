@@ -54,7 +54,8 @@ const screenshots = [
 </div>
 
 <style lang="scss">
-  @import '@styles/global.scss';
+  @use '@styles/global.scss';
+  @use '@styles/media-queries.scss' as mq;
 
   .container {
     display: flex;
@@ -64,7 +65,7 @@ const screenshots = [
     justify-content: flex-end;
     gap: 1.5rem;
     z-index: 2;
-    @include desktop-down {
+    @include mq.desktop-down {
       display: none;
     }
   }

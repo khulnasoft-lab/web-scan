@@ -23,7 +23,8 @@ const ctaImageSrc = 'https://i.ibb.co/5jJ4bzZ/terminal-trove-cta.png';
 </div>
 
 <style lang="scss">
-  @import '@styles/global.scss';
+  @use '@styles/global.scss';
+  @use '@styles/media-queries.scss' as mq;
   .sponsored-but-dont-block {
     background: var(--text-color);
     color: var(--background);
@@ -34,10 +35,10 @@ const ctaImageSrc = 'https://i.ibb.co/5jJ4bzZ/terminal-trove-cta.png';
     justify-content: space-between;
     align-items: center;
     
-    @include tablet-portrait-down {
+    @include mq.tablet-portrait-down {
       flex-wrap: wrap;
     }
-    @include for-mobile-only {
+    @include mq.for-mobile-only {
       flex-direction: column;
       align-items: center;
     }

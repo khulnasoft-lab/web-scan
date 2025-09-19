@@ -32,14 +32,15 @@ if (!isBossServer) {
 </BaseLayout>
 
 <style lang="scss">
-  @import '@styles/global.scss';
+  @use '@styles/global.scss';
+  @use '@styles/media-queries.scss' as mq;
   main {
     min-height: 100vh;
     padding: 2rem;
     margin: 0 auto;
     z-index: 3;
     background: var(--background);
-    @include tablet-landscape-down {
+    @include mq.tablet-landscape-down {
       width: 96vw;
     }
 

@@ -20,10 +20,10 @@ const unwrapEnvVar = (varName, fallbackValue) => {
 }
 
 // Determine the deploy target (vercel, netlify, cloudflare, node)
-const deployTarget = unwrapEnvVar('PLATFORM', 'node').toLowerCase();
+const deployTarget = (process.env.DEPLOY_TARGET || 'static').toLowerCase();
 
 // Determine the output mode (server, hybrid or static)
-const output = unwrapEnvVar('OUTPUT', 'hybrid');
+const output = deployTarget === 'static' ? 'static' : unwrapEnvVar('OUTPUT', 'hybrid');
 
 // The FQDN of where the site is hosted (used for sitemaps & canonical URLs)
 const site = unwrapEnvVar('SITE_URL', 'https://web-scan.netlify.app');
@@ -47,7 +47,9 @@ function getAdapter(target) {
     case 'cloudflare':
       return cloudflareAdapter();
     case 'node':
-      return nodeAdapter({ mode: 'middleware' });
+      return nodeAdapter({ mode: 'standalone' });
+    case 'static':
+      return null; // No adapter needed for static builds
     default:
       throw new Error(`Unsupported deploy target: ${target}`);
   }
@@ -75,5 +77,9 @@ if (!isBossServer && isBossServer !== true) {
 }
 
 // Export Astro configuration
-export default defineConfig({ output, base, integrations, site, adapter, redirects });
+const config = { output, base, integrations, site, redirects };
+if (adapter) {
+  config.adapter = adapter;
+}
+export default defineConfig(config);
 

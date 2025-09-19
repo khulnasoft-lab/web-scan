@@ -12,10 +12,18 @@ const ALLOWED_ORIGINS = process.env.API_CORS_ORIGIN || '*';
 const DISABLE_EVERYTHING = !!process.env.VITE_DISABLE_EVERYTHING;
 
 // Set the platform currently being used
-let PLATFORM = 'NETLIFY';
-if (process.env.PLATFORM) { PLATFORM = process.env.PLATFORM.toUpperCase(); }
-else if (process.env.VERCEL) { PLATFORM = 'VERCEL'; }
-else if (process.env.WC_SERVER) { PLATFORM = 'NODE'; }
+let PLATFORM = 'NODE'; // Default to NODE for our development server
+if (process.env.PLATFORM) { 
+  PLATFORM = process.env.PLATFORM.toUpperCase(); 
+  console.log(`🔧 Platform set from env: ${PLATFORM}`);
+} else if (process.env.VERCEL) { 
+  PLATFORM = 'VERCEL'; 
+} else if (process.env.NETLIFY) { 
+  PLATFORM = 'NETLIFY'; 
+} else {
+  PLATFORM = 'NODE'; // Force NODE for development
+  console.log(`🔧 Platform defaulted to: ${PLATFORM}`);
+}
 
 // Define the headers to be returned with each response
 const headers = {
@@ -53,24 +61,16 @@ const commonMiddleware = (handler) => {
     });
   };
 
-  // Vercel
+  // Vercel/Node.js
   const vercelHandler = async (request, response) => {
     
     if (DISABLE_EVERYTHING) {
       response.status(503).json({ error: disabledErrorMsg });
+      return;
     }
     
     const queryParams = request.query || {};
     const rawUrl = queryParams.url;
-    
-    if (DISABLE_EVERYTHING) {
-      callback(null, {
-        statusCode: 503,
-        body: JSON.stringify({ error: 'Web-Scan is temporarily disabled. Please try again later.' }),
-        headers,
-      });
-      return;
-    }
 
     if (!rawUrl) {
       return response.status(500).json({ error: 'No URL specified' });
@@ -145,11 +145,8 @@ const commonMiddleware = (handler) => {
 
   // The format of the handlers varies between platforms
   const nativeMode = (['VERCEL', 'NODE'].includes(PLATFORM));
+  console.log(`🔧 Middleware: Platform=${PLATFORM}, NativeMode=${nativeMode}`);
   return nativeMode ? vercelHandler : netlifyHandler;
 };
-
-if (PLATFORM === 'NETLIFY') {
-  module.exports = commonMiddleware;
-}
 
 export default commonMiddleware;

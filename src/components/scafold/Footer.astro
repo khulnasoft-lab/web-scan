@@ -27,7 +27,8 @@ const currentYear = new Date().getFullYear();
 </footer>
 
 <style lang="scss">
-  @import '@styles/global.scss';
+  @use '@styles/global.scss';
+  @use '@styles/media-queries.scss' as mq;
   footer {
     margin-top: 1rem;
     background: var(--primary);
@@ -45,7 +46,7 @@ const currentYear = new Date().getFullYear();
     a {
       text-decoration: underline;
     }
-    @include tablet-portrait-down {
+    @include mq.tablet-portrait-down {
       flex-direction: column;
       align-items: center;
     }

@@ -1,7 +1,7 @@
 /* Global Stylesheet */
-@import './colors.scss';
-@import './media-queries.scss';
-@import './typography.scss';
+@use './colors.scss';
+@use './media-queries.scss' as mq;
+@use './typography.scss';
 
 /* CSS Reset - Normalize dimensions and spacing across browsers */
 *,
@@ -87,7 +87,7 @@ input, button, textarea, select {
 .underline { text-decoration: underline; }
 .uppercase { text-transform: uppercase; }
 
-@media (max-width: 768px) {
+@include mq.tablet-portrait-down {
   html {
     font-size: 14px;
   }
@@ -108,7 +108,7 @@ h5 { font-size: 1rem; }
 h6 { font-size: 0.85rem; }
 
 // Responsive font sizes
-@media (max-width: 768px) {
+@include mq.tablet-portrait-down {
   h1 { font-size: 2rem; }
   h2 { font-size: 1.6rem; }
   h3 { font-size: 1.4rem; }

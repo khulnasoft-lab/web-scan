@@ -1,10 +1,11 @@
+# Multi-stage production-optimized Dockerfile for Web-Scan API
 # Specify the Node.js version to use
-ARG NODE_VERSION=21
+ARG NODE_VERSION=18
 
 # Specify the Debian version to use, the default is "bullseye"
-ARG DEBIAN_VERSION=bullseye
+ARG DEBIAN_VERSION=bullseye-slim
 
-# Use Node.js Docker image as the base image, with specific Node and Debian versions
+# Build stage
 FROM node:${NODE_VERSION}-${DEBIAN_VERSION} AS build
 
 # Set the container's default shell to Bash and enable some options
@@ -39,24 +40,63 @@ COPY . .
 # Run yarn build to build the application
 RUN yarn build --production
 
-# Final stage
-FROM node:${NODE_VERSION}-${DEBIAN_VERSION}  AS final
+# Production stage
+FROM node:${NODE_VERSION}-${DEBIAN_VERSION} AS production
+
+# Create non-root user for security
+RUN groupadd --gid 1001 --system nodejs && \
+    useradd --uid 1001 --system --gid nodejs --create-home --shell /bin/bash nodejs
+
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        chromium \
+        traceroute \
+        curl \
+        dumb-init && \
+    chmod 755 /usr/bin/chromium && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
+# Copy package files
 COPY package.json yarn.lock ./
-COPY --from=build /app .
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends chromium traceroute && \
-    chmod 755 /usr/bin/chromium && \
-    rm -rf /var/lib/apt/lists/* /app/node_modules/.cache
+# Install production dependencies only
+RUN yarn install --frozen-lockfile --production --network-timeout 100000 && \
+    yarn cache clean && \
+    rm -rf /tmp/* /var/tmp/* /app/node_modules/.cache
 
-# Exposed container port, the default is 3000, which can be modified through the environment variable PORT
-EXPOSE ${PORT:-3000}
+# Copy application code from build stage
+COPY --from=build --chown=nodejs:nodejs /app/dist ./dist
+COPY --from=build --chown=nodejs:nodejs /app/api ./api
+COPY --from=build --chown=nodejs:nodejs /app/src ./src
+COPY --from=build --chown=nodejs:nodejs /app/server-dev.js ./
+COPY --from=build --chown=nodejs:nodejs /app/server.js ./
 
-# Set the environment variable CHROME_PATH to specify the path to the Chromium binaries
-ENV CHROME_PATH='/usr/bin/chromium'
+# Create necessary directories
+RUN mkdir -p /app/logs /app/test-results /app/docs && \
+    chown -R nodejs:nodejs /app
 
-# Define the command executed when the container starts and start the server.js of the Node.js application
-CMD ["yarn", "start"]
+# Switch to non-root user
+USER nodejs
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:${PORT:-3001}/health || exit 1
+
+# Environment variables
+ENV NODE_ENV=production \
+    PORT=3001 \
+    CHROME_PATH='/usr/bin/chromium' \
+    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH='/usr/bin/chromium'
+
+# Expose port
+EXPOSE ${PORT:-3001}
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start the application
+CMD ["node", "server-dev.js"]
